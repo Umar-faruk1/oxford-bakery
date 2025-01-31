@@ -137,11 +137,12 @@ export interface CartItem {
 
 
 //Admin Section
-  export interface NavItem {
-    title: string;
-    href: string;
-    icon: React.ComponentType;
-  }
+export interface NavItem {
+  title: string;
+  href: string;
+  icon: React.ElementType;
+}
+
   
   export interface SidebarProps {
     isOpen: boolean;
