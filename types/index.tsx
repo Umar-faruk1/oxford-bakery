@@ -30,7 +30,7 @@ export interface CartItem {
   }
   
   export interface UserProfile {
-    profileImage: null;
+    profileImage: null | string;
     id: string;
     name: string;
     email: string;

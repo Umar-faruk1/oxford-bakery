@@ -16,21 +16,7 @@ export const mockUser: UserProfile = {
         },
     ],
     orders: [
-        {
-            id: "1001",
-            createdAt: "2024-02-20",
-            status: "delivered",
-            items: [
-                {
-                    id: "1",
-                    name: "Product 1",
-                    quantity: 2,
-                    price: 29.99,
-                    
-                },
-            ],
-            total: 59.98,
-        },
+        
     ],
     profileImage: null
 };
