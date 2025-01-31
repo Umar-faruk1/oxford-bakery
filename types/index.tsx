@@ -158,8 +158,9 @@ export interface NavItem {
     value: string;
     change: string;
     isIncrease: boolean;
-    icon: React.ComponentType;
+    icon: React.ElementType; // ✅ Use React.ElementType for components
   }
+  
   
   export interface User {
     id: string;
