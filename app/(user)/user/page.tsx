@@ -1,3 +1,4 @@
+'use client'
 import { ProfileContent } from "./ProfileContent";
 import { mockUser } from "@/lib/mock-data";
 
