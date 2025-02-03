@@ -8,7 +8,7 @@ const HeroSection = () => {
     router.push('/menu')
   }
   return (
-    <section className="relative h-[500px] bg-gray-900 text-white">
+    <section className="relative h-[550px] bg-gray-900 text-white">
           <div className="absolute inset-0">
             <img
               src="/images/background.jpg"
@@ -28,9 +28,9 @@ const HeroSection = () => {
                 <button onClick={handleNavigation} className="bg-red-500 text-white px-8 py-3 rounded-lg hover:bg-red-600">
                   View Menu
                 </button>
-                <button className="bg-white text-gray-900 px-8 py-3 rounded-lg hover:bg-gray-100">
+                {/* <button className="bg-white text-gray-900 px-8 py-3 rounded-lg hover:bg-gray-100">
                   Book a Table
-                </button>
+                </button> */}
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
 'use client'
-import { Footer } from "./components/Common/Footer"
+
 import { Navbar } from "./components/Common/Navbar"
 import Sidebar from "./components/Common/Sidebar"
 import { TabNavigation } from "./components/Common/TabNavigation"

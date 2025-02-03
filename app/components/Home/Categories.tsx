@@ -3,8 +3,8 @@
 const categories = [
   {
     id: 1,
-    name: "Pasta",
-    image: "/images/img9.jpg"
+    name: "Cakes",
+    image: "/images/img1.jpg"
   },
   {
     id: 2,
