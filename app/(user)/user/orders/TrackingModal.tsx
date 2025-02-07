@@ -1,10 +1,9 @@
 'use client'
-import { Phone, MapPin, X } from "lucide-react";
+import { Phone, MapPin } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { DeliveryMap } from "./DeliveryMap";
 import { Order } from "@/types";
-import { useEffect } from "react"; // Import useEffect
 
 interface TrackingModalProps {
   order: Order;
@@ -13,12 +12,6 @@ interface TrackingModalProps {
 }
 
 export function TrackingModal({ order, isOpen, onClose }: TrackingModalProps) {
-  const handleCallChef = () => {
-    if (typeof window !== 'undefined') {
-      window.open(`tel:${order.chef?.phone}`);
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md" aria-describedby="tracking-order-description">
@@ -67,9 +60,12 @@ export function TrackingModal({ order, isOpen, onClose }: TrackingModalProps) {
                     <p className="text-xs text-muted-foreground">ID: {order.id}</p>
                   </div>
                 </div>
-                <Button size="icon" variant="ghost" onClick={handleCallChef}>
-                  <Phone className="h-4 w-4" />
-                </Button>
+                {/* Replace Button with <a> tag */}
+                <a href={`tel:${order.chef?.phone}`}>
+                  <Button size="icon" variant="ghost">
+                    <Phone className="h-4 w-4" />
+                  </Button>
+                </a>
               </div>
             </div>
 
