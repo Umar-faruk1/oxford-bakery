@@ -8,19 +8,39 @@ const categories = [
   },
   {
     id: 2,
-    name: "Pizza",
+    name: "Cookies & Donuts",
     image: "/images/pizza1.jpg"
   },
   {
     id: 3,
-    name: "Salads",
+    name: "Savory Pastries & Pies",
     image: "/images/img11.jpg"
   },
   {
     id: 4,
-    name: "Desserts",
+    name: "Bread & Baked Goods",
     image: "/images/img10.jpg"
-  }
+  },
+  {
+    id: 5,
+    name: "Pizza & Flatbreads",
+    image: "/images/img12.jpg"
+  },
+  {
+    id: 6,
+    name: "Ice Cream & Frozen Desserts",
+    image: "/images/img6.jpg"
+  },
+  {
+    id: 7,
+    name: "Beverages",
+    image: "/images/img7.jpg"
+  },
+  {
+    id: 8,
+    name: "Other Desserts",
+    image: "/images/img3.jpg"
+  },
 ];
 
 export function Categories() {

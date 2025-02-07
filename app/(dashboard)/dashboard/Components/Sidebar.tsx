@@ -32,6 +32,16 @@ const navItems: NavItem[] = [
 export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const pathname = usePathname();
 
+  const isLinkActive = (href: string): boolean => {
+    // Exact match for dashboard home
+    if (href === '/dashboard') {
+      return pathname === '/dashboard';
+    }
+    // For other routes, check if the pathname starts with the href
+    // and either ends there or continues with a slash
+    return pathname.startsWith(href) && (pathname === href || pathname.charAt(href.length) === '/');
+  };
+
   return (
     <aside
       className={`${
@@ -57,7 +67,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
       {/* Sidebar Navigation */}
       <nav className="mt-4 px-2">
         {navItems.map((item) => {
-          const isActive = pathname.startsWith(item.href); // Improved active link logic
+          const isActive = isLinkActive(item.href);
 
           return (
             <Link
@@ -67,7 +77,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 isActive ? "bg-red-500 text-white" : "hover:bg-gray-100 dark:hover:bg-gray-700"
               } ${!isOpen && "justify-center"}`}
             >
-              {item.icon && React.createElement(item.icon, { className: "w-6 h-6" })}
+              <item.icon className="w-6 h-6" />
               {isOpen && <span>{item.title}</span>}
             </Link>
           );

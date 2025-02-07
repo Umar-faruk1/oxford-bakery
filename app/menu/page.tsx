@@ -11,6 +11,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Navbar } from '../components/Common/Navbar';
+import { TabNavigation } from '../components/Common/TabNavigation';
 
 const categories = ['All', 'Pizza', 'Pasta', 'Salads', 'Desserts', 'Beverages'];
 const sortOptions = ['Popular', 'Price: Low to High', 'Price: High to Low', 'Rating'];
@@ -129,11 +131,12 @@ export default function Menu() {
   };
 
   const handleProductClick = (productId: string) => {
-    router.push(`/menu/${productId}`); // Use `router.push` to navigate
+    router.push(`/menu/${productId}`);
   };
 
   return (
     <main className="min-h-screen bg-gray-50 pt-16 pb-16">
+      <Navbar/>
       {/* Hero Section */}
       <section className="relative h-[200px] bg-gray-900 text-white">
         <div className="absolute inset-0">
@@ -253,6 +256,7 @@ export default function Menu() {
               </div>
             </div>
           ))}
+          <TabNavigation/>
         </div>
       </div>
     </main>

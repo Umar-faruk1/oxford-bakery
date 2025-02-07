@@ -5,6 +5,9 @@ import { CartHeader } from './CartHeader';
 import { CartItems } from './CartItems';
 import { OrderSummary } from './OrderSummary';
 import { DeliveryAddress } from './DeliveryAddress';
+import { Navbar } from '../components/Common/Navbar';
+import SideBar from '../components/Common/Sidebar';
+import { TabNavigation } from '../components/Common/TabNavigation';
 
 const initialCartItems = [
   {
@@ -59,6 +62,8 @@ export default function Cart() {
 
   return (
     <main className="min-h-screen bg-gray-50 pt-16 pb-16">
+      <Navbar/>
+      <SideBar/>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <CartHeader />
         {items.length === 0 ? (
@@ -76,6 +81,7 @@ export default function Cart() {
             </div>
           </div>
         )}
+        <TabNavigation />
       </div>
     </main>
   );

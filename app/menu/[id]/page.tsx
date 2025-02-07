@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Product } from '@/types';
 import toast from 'react-hot-toast';
 import { useRouter, useParams } from 'next/navigation';
+import { Navbar } from '@/app/components/Common/Navbar';
+import SideBar from '@/app/components/Common/Sidebar';
+import { TabNavigation } from '@/app/components/Common/TabNavigation';
 
 // Size price multipliers
 const sizePriceMultipliers = {
@@ -128,6 +131,8 @@ export default function ProductDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navbar/>
+      <SideBar/>
       <main className="pt-20 pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row gap-8">
@@ -248,6 +253,7 @@ export default function ProductDetails() {
             </div>
           </div>
         </div>
+        <TabNavigation/>
       </main>
     </div>
   );

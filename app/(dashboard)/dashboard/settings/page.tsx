@@ -1,93 +1,92 @@
-"use client";
-
+'use client'
 import { useState } from "react";
-import { Save } from "lucide-react";
+import { Category, Settings } from "@/types";
+import { SettingsForm } from "./SettingsForm";
+import { CategoriesTable } from "./CategoriesTable";
+import { CategoryModal } from "./CategoryModal";
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState({
-    storeName: "My Store",
-    email: "admin@example.com",
-    phone: "+1 234 567 890",
+  const [settings, setSettings] = useState<Settings>({
+    name: "My Store",
     address: "123 Main St, City",
-    notifications: true,
-    darkMode: false,
+    bannerUrl: "",
+    deliveryFee: 5.00,
+    serviceFee: 2.50,
   });
+
+  const [categories, setCategories] = useState<Category[]>([
+    {
+      id: 1,
+      image: "https://images.unsplash.com/photo-1582562124811-c09040d0a901",
+      title: "Food",
+      description: "Delicious meals from local restaurants",
+    },
+  ]);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | undefined>();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle settings update
+    console.log("Settings updated:", settings);
+  };
+
+  const handleAddCategory = () => {
+    setSelectedCategory(undefined);
+    setModalOpen(true);
+  };
+
+  const handleEditCategory = (category: Category) => {
+    setSelectedCategory(category);
+    setModalOpen(true);
+  };
+
+  const handleDeleteCategory = (id: number) => {
+    setCategories(categories.filter(category => category.id !== id));
+  };
+
+  const handleSaveCategory = (categoryData: Partial<Category>) => {
+    if (selectedCategory) {
+      // Edit existing category
+      setCategories(categories.map(category => 
+        category.id === selectedCategory.id ? { ...category, ...categoryData } : category
+      ));
+    } else {
+      // Add new category
+      const newCategory: Category = {
+        id: categories.length + 1,
+        image: categoryData.image || "",
+        title: categoryData.title || "",
+        description: categoryData.description || "",
+      };
+      setCategories([...categories, newCategory]);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Store Name</label>
-              <input
-                type="text"
-                value={settings.storeName}
-                onChange={(e) => setSettings({ ...settings, storeName: e.target.value })}
-                className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
-              <input
-                type="email"
-                value={settings.email}
-                onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Phone</label>
-              <input
-                type="tel"
-                value={settings.phone}
-                onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-                className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Address</label>
-              <textarea
-                value={settings.address}
-                onChange={(e) => setSettings({ ...settings, address: e.target.value })}
-                className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
-                rows={3}
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={settings.notifications}
-                onChange={(e) => setSettings({ ...settings, notifications: e.target.checked })}
-                className="rounded border-gray-300 dark:border-gray-600"
-              />
-              <label className="text-sm font-medium">Enable Notifications</label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={settings.darkMode}
-                onChange={(e) => setSettings({ ...settings, darkMode: e.target.checked })}
-                className="rounded border-gray-300 dark:border-gray-600"
-              />
-              <label className="text-sm font-medium">Dark Mode</label>
-            </div>
-          </div>
-          <button
-            type="submit"
-            className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-          >
-            <Save className="w-4 h-4" />
-            <span>Save Changes</span>
-          </button>
-        </form>
-      </div>
+    <div className="container mx-auto p-6 space-y-8">
+      <h1 className="text-3xl font-bold">Settings</h1>
+      
+      <SettingsForm 
+        settings={settings}
+        setSettings={setSettings}
+        onSubmit={handleSubmit}
+      />
+
+      <CategoriesTable 
+        categories={categories}
+        onAddCategory={handleAddCategory}
+        onEditCategory={handleEditCategory}
+        onDeleteCategory={handleDeleteCategory}
+      />
+
+      <CategoryModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSave={handleSaveCategory}
+        category={selectedCategory}
+      />
     </div>
   );
 }

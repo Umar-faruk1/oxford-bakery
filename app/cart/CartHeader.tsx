@@ -22,7 +22,6 @@ export const CartHeader = () => {
           Continue Shopping
         </Button>
       </Link>
-
       <div className="mt-6">
       <DeliveryAddress/>
       </div>

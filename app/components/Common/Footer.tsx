@@ -9,7 +9,7 @@ const Footer = () => {
           <div className="col-span-2 lg:col-span-1">
             <h2 className="text-2xl font-bold mb-4">Oxford Bakery</h2>
             <p className="text-gray-400">
-              Experience the best Cake DeliveryService in town.
+              Experience the best Cake Delivery Service in town.
             </p>
           </div>
           <div className="lg:col-span-1">
@@ -42,7 +42,7 @@ const Footer = () => {
             <p className="text-gray-400">Oxford Street</p>
             <p className="text-gray-400">City, Wa</p>
             <p className="text-gray-400">Phone: 0208544128</p>
-            <p className="text-gray-400">Email: ocfordbakery.com</p>
+            <p className="text-gray-400">Email: oxfordbakery.com</p>
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-4">Follow Us</h3>
@@ -67,7 +67,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400">
-          <p>&copy; {new Date().getFullYear()} Company Name. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Oxford Bakery. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { PopularMenuModal } from "../Common/PopularMenuModal";
+import Footer from "../Common/Footer";
 
 interface Menu {
   id: number;
@@ -169,6 +170,7 @@ export const PopularMenuSection: React.FC = () => {
           onToggleFavorite={handleToggleFavorite}
         />
       )}
+      <Footer/>
     </section>
   );
 };

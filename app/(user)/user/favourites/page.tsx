@@ -26,7 +26,7 @@ export default function FavoritesPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <Link href="/user">
-            <Button variant="outline" className="text-green-600 hover:text-green-700 hover:bg-green-50">
+            <Button variant="outline" className="text-red-500 hover:text-red-600 hover:bg-green-50">
               <ChevronLeft className="h-4 w-4 mr-2" />
               Back to my Profile
             </Button>

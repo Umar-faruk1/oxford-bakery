@@ -26,15 +26,15 @@ import { useToast } from '@/hooks/use-toast';
 const initialMenuItems: MenuItem[] = [
   {
     id: '1',
-    image: '/menu/cheeseburger.jpg',
+    image: '/images/img6.jpg',
     title: 'Cheese Burger',
     category: 'meals',
     price: 105,
   },
   {
     id: '2',
-    image: '/menu/chicken-filet.jpg',
-    title: 'Chicken Filet',
+    image: '/images/img5.jpg',
+    title: 'Pizza',
     category: 'meals',
     price: 75,
   },
@@ -43,7 +43,7 @@ const initialMenuItems: MenuItem[] = [
 const Menu = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all'); // Default to "all"
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [priceSort, setPriceSort] = useState<'asc' | 'desc'>('asc');
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuItem | undefined>();
@@ -69,6 +69,7 @@ const Menu = () => {
       toast({ title: 'Menu item added', description: 'The new menu item has been added.' });
     }
     setSelectedItem(undefined);
+    setModalOpen(false);
   };
 
   const handleDelete = (id: string) => {
@@ -97,11 +98,9 @@ const Menu = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-sm"
-            
           />
         </div>
 
-        {/* Fixed: Select now uses "all" instead of an empty string */}
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Category" />
@@ -141,7 +140,7 @@ const Menu = () => {
               <TableRow key={item.id}>
                 <TableCell>
                   <img
-                    src={item.image}
+                    src={typeof item.image === 'string' ? item.image : URL.createObjectURL(item.image)}
                     alt={item.title}
                     className="w-12 h-12 rounded-lg object-cover"
                   />

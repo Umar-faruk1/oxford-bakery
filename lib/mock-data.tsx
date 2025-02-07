@@ -2,17 +2,17 @@ import { FavoriteItem, UserProfile } from "@/types";
 
 export const mockUser: UserProfile = {
     id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    phone: "+1234567890",
+    name: "Umar Faruk",
+    email: "yungfard@gmail.com",
+    phone: "",
     language: "en",
     addresses: [
         {
             street: "123 Food Street",
-            city: "Foodville",
+            city: "Wa",
             state: "FD",
             zipCode: "12345",
-            country: "USA",
+            country: "Ghana",
         },
     ],
     orders: [
@@ -91,4 +91,6 @@ export const mockFavorites: FavoriteItem[] = [
     },
   ]
   
+  
+
   

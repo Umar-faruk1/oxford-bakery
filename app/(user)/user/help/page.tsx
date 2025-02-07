@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { submitHelpQuery } from "./actions"
 import { HelpCategory, HelpQuery } from "@/types"
+import { TabNavigation } from "@/app/components/Common/TabNavigation"
 
 const helpCategories: HelpCategory[] = [
   { value: "order_delivery", label: "Order Delivery" },
@@ -109,6 +110,7 @@ export default function HelpPage() {
           </form>
         </div>
       </div>
+      <TabNavigation/>
       <Toaster />
     </main>
   )

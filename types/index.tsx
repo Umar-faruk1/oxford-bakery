@@ -173,8 +173,8 @@ export interface NavItem {
 
   export interface MenuItem {
     id: string;
-    image: string;
     title: string;
+    image: string | File; // Can be a URL or a File object
     category: 'breakfast' | 'meals' | 'beverages';
     price: number;
   }
@@ -183,5 +183,36 @@ export interface NavItem {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     menuItem?: MenuItem;
-    onSave: (item: Omit<MenuItem, 'id'>) => void;
+    onSave: (data: Omit<MenuItem, 'id'>) => void;
+  }
+
+
+  export interface Driver {
+    id: number;
+    name: string;
+    status: 'online' | 'offline';
+  }
+  
+  export interface Delivery {
+    id: number;
+    order: string;
+    customer: string;
+    address: string;
+    status: 'Pending' | 'In Transit' | 'Delivered';
+    driver: string | null;
+  }
+
+  export interface Settings {
+    name: string;
+    address: string;
+    bannerUrl: string;
+    deliveryFee: number;
+    serviceFee: number;
+  }
+  
+  export interface Category {
+    id: number;
+    image: string;
+    title: string;
+    description: string;
   }

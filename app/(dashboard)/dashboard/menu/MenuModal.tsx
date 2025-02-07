@@ -4,15 +4,22 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MenuModalProps } from '@/types';
+import { MenuModalProps, MenuItem } from '@/types';
 
 const MenuModal = ({ open, onOpenChange, menuItem, onSave }: MenuModalProps) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Omit<MenuItem, 'id'>>({
     title: menuItem?.title || '',
     image: menuItem?.image || '',
     category: menuItem?.category || 'meals',
     price: menuItem?.price || 0,
   });
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData((prev) => ({ ...prev, image: file }));
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,8 +27,18 @@ const MenuModal = ({ open, onOpenChange, menuItem, onSave }: MenuModalProps) => 
     onOpenChange(false);
   };
 
+  const handleClose = () => {
+    setFormData({
+      title: '',
+      image: '',
+      category: 'meals',
+      price: 0,
+    });
+    onOpenChange(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{menuItem ? 'Edit Menu Item' : 'Add Menu Item'}</DialogTitle>
@@ -37,13 +54,19 @@ const MenuModal = ({ open, onOpenChange, menuItem, onSave }: MenuModalProps) => 
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="image">Image URL</Label>
+            <Label htmlFor="image">Upload Image</Label>
             <Input
               id="image"
-              value={formData.image}
-              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-              required
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              required={!menuItem}
             />
+            {formData.image && (
+              <p className="text-gray-500">
+                Selected: {typeof formData.image === 'string' ? 'Existing Image' : formData.image.name}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
@@ -74,7 +97,7 @@ const MenuModal = ({ open, onOpenChange, menuItem, onSave }: MenuModalProps) => 
             />
           </div>
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>
             <Button type="submit">Save</Button>

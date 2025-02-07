@@ -1,3 +1,4 @@
+import { TabNavigation } from "@/app/components/Common/TabNavigation"
 import { FavoritesCard } from "./FavouritesCard"
 import { FavoriteItem } from "@/types"
 
@@ -12,6 +13,7 @@ export function FavoritesSection({ favorites, onAddToCart }: FavoritesSectionPro
       {favorites.map((item) => (
         <FavoritesCard key={item.id} item={item} onAddToCart={onAddToCart} />
       ))}
+      <TabNavigation/>
     </div>
   )
 }

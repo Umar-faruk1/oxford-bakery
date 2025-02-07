@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, Settings, User } from "lucide-react";
+import { LogOut, Bell, User } from "lucide-react";
 import { useState } from "react";
 
 export default function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  // const handleNotification = () =>{
+  //   router = 
+  // }
 
   return (
     <nav className="sticky top-0 z-50 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6">
@@ -19,11 +23,9 @@ export default function Navbar() {
 
         <div className="flex items-center space-x-4">
           <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-            <Settings className="w-6 h-6" />
+            <Bell className="w-6 h-6" />
           </button>
-          <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-            <Settings className="w-6 h-6" />
-          </button>
+          
           <div className="relative">
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}

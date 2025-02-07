@@ -4,10 +4,18 @@ import { Menu, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useSideBarDrawer } from '@/lib/store';
+import { useRouter } from 'next/navigation';
 
 
 export function Navbar() {
     const {onSidebarOpen} = useSideBarDrawer()
+    const router = useRouter() 
+    const handleCartClick = () =>{
+        router.push('/cart')
+    }
+    const handleSignup = () =>{
+        router.push('/auth/signup')
+    }
     return (
         <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,13 +43,14 @@ export function Navbar() {
                             variant="ghost"
                             size="icon"
                             className="text-gray-600 hover:text-red-500 relative"
+                            onClick={handleCartClick}
                         >
-                            <ShoppingCart className="h-5 w-5" />
+                            <ShoppingCart  className="h-5 w-5" />
                             <Link href='/cart' className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                                 0
                             </Link>
                         </Button>
-                        <Button variant="default" className="bg-red-500 hover:bg-red-600">
+                        <Button variant="default" className="bg-red-500 hover:bg-red-600" onClick={handleSignup}>
                             Sign Up
                         </Button>
                     </div>
