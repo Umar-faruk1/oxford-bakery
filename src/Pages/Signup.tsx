@@ -113,7 +113,7 @@ export default function SignUpPage() {
       // Store the token in localStorage
       localStorage.setItem("token", signinData.token)
       // Update auth store with user info
-      login(formData.email, signinData.user.image, signinData.user.role)
+      login(formData.email, signinData.user.image)
       
       toast.success("Account created successfully", {
         description: `Welcome to Oxford Bakery, ${formData.name}!`,

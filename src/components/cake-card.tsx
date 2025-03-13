@@ -12,6 +12,11 @@ interface CakeCardProps {
   cake: Cake
 }
 
+const normalizeImageUrl = (url: string | null) => {
+  if (!url) return "/placeholder.svg";
+  return url.replace(/\\/g, '/');
+};
+
 export default function CakeCard({ cake }: CakeCardProps) {
   const [quantity, setQuantity] = useState(0)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -49,7 +54,7 @@ export default function CakeCard({ cake }: CakeCardProps) {
       >
         <div className="relative h-48 w-full group">
           <img 
-            src={cake.image || "/placeholder.svg"} 
+            src={normalizeImageUrl(cake.image)} 
             alt={cake.name} 
             className="w-full h-full object-cover"
           />

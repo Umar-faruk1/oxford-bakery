@@ -12,6 +12,11 @@ interface CakeModalProps {
   onAddToCart: () => void
 }
 
+const normalizeImageUrl = (url: string | null) => {
+  if (!url) return "/placeholder.svg";
+  return url.replace(/\\/g, '/');
+};
+
 export function CakeModal({ cake, isOpen, onClose, onAddToCart }: CakeModalProps) {
   if (!isOpen) return null
 
@@ -40,7 +45,7 @@ export function CakeModal({ cake, isOpen, onClose, onAddToCart }: CakeModalProps
 
             <div className="relative h-64 w-full">
               <img
-                src={cake.image || "/placeholder.svg"}
+                src={normalizeImageUrl(cake.image)}
                 alt={cake.name}
                 className="w-full h-full object-cover rounded-t-lg"
               />
