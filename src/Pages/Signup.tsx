@@ -13,7 +13,7 @@ import { toast } from "sonner"
 import { Loader2, Mail, Lock, User } from "lucide-react"
 import { FcGoogle } from "react-icons/fc"
 
-const API_URL = "http://localhost:8000"
+const API_URL = import.meta.env.VITE_API_URL
 
 export default function SignUpPage() {
   const navigate = useNavigate()
@@ -73,7 +73,7 @@ export default function SignUpPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${API_URL}/signup`, {
+      const response = await fetch(`${API_URL}/auth/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -89,11 +89,18 @@ export default function SignUpPage() {
       const data = await response.json()
 
       if (!response.ok) {
+        if (response.status === 400) {
+          // Handle validation errors
+          toast.error("Signup failed", {
+            description: data.detail || "Please check your input"
+          });
+          return;
+        }
         throw new Error(data.detail || "Failed to create account")
       }
 
       // After successful signup, sign in the user
-      const signinResponse = await fetch(`${API_URL}/signin`, {
+      const signinResponse = await fetch(`${API_URL}/auth/signin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -107,13 +114,25 @@ export default function SignUpPage() {
       const signinData = await signinResponse.json()
 
       if (!signinResponse.ok) {
+        if (signinResponse.status === 401) {
+          toast.error("Invalid credentials", {
+            description: "Please check your email and password"
+          });
+          return;
+        }
         throw new Error(signinData.detail || "Failed to sign in")
       }
 
-      // Store the token in localStorage
-      localStorage.setItem("token", signinData.token)
-      // Update auth store with user info
-      login(formData.email, signinData.user.image)
+      // Update auth store with user info and token
+      login(
+        signinData.user.email,
+        signinData.user.name,
+        signinData.user.image,
+        signinData.access_token,
+        signinData.user.role
+      )
+
+      await useAuthStore.getState().hydrate()
       
       toast.success("Account created successfully", {
         description: `Welcome to Oxford Bakery, ${formData.name}!`,
@@ -126,7 +145,9 @@ export default function SignUpPage() {
         navigate("/")
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create account")
+      toast.error("Error", {
+        description: err instanceof Error ? err.message : "Something went wrong"
+      });
     } finally {
       setIsLoading(false)
     }

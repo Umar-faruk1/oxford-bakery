@@ -4,16 +4,21 @@ import { useState, useEffect } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Home, Menu, ShoppingCart, User, Phone } from "lucide-react"
-import { useCartStore } from "@/lib/store"
+import { useCartStore, useAuthStore } from "@/lib/store"
 
 export default function MobileNavigation() {
   const location = useLocation()
   const [mounted, setMounted] = useState(false)
-  const cartItems = useCartStore((state) => state.getTotalItems())
+  const getTotalItems = useCartStore((state) => state.getTotalItems)
+  const [cartCount, setCartCount] = useState(0)
+  const { user } = useAuthStore()
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+    if (mounted) {
+      setCartCount(getTotalItems())
+    }
+  }, [mounted, getTotalItems])
 
   const navItems = [
     { name: "Home", href: "/", icon: <Home className="h-5 w-5" /> },
@@ -24,17 +29,23 @@ export default function MobileNavigation() {
       icon: (
         <div className="relative">
           <ShoppingCart className="h-5 w-5" />
-          {mounted && cartItems > 0 && (
+          {mounted && cartCount > 0 && (
             <span className="absolute -top-2 -right-2 bg-[#FF7F00] text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-              {cartItems}
+              {cartCount}
             </span>
           )}
         </div>
       ),
     },
-    { name: "Profile", href: "/profile", icon: <User className="h-5 w-5" /> },
+    { 
+      name: "Profile", 
+      href: user ? "/profile" : "/signin", 
+      icon: <User className="h-5 w-5" /> 
+    },
     { name: "Contact", href: "/contact", icon: <Phone className="h-5 w-5" /> },
   ]
+
+  if (!mounted) return null;
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-lg">

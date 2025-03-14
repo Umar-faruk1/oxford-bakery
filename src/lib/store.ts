@@ -16,17 +16,21 @@ interface CartState {
   getTotalPrice: () => number
 }
 
-interface AuthState {
-  user: {
-    name: string
-    email: string
-    image?: string
-    role?: string
-  } | null
-  token: string | null
-  isAuthenticated: boolean
-  login: (token: string, userData: { email: string; name: string; image?: string; role?: string }) => void
-  logout: () => void
+interface User {
+  email: string;
+  name: string;
+  image?: string | null;
+  role?: string | null;
+}
+
+interface AuthStore {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (email: string, name: string, image: string | null, token: string, role?: string | null) => void;
+  logout: () => void;
+  hydrate: () => Promise<void>;
 }
 
 export const useCartStore = create<CartState>()(
@@ -72,23 +76,72 @@ export const useCartStore = create<CartState>()(
   ),
 )
 
-export const useAuthStore = create<AuthState>()(
+export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
       user: null,
       token: null,
       isAuthenticated: false,
-      login: (token, userData) =>
-        set({
+      isLoading: true,
+      login: (email: string, name: string, image: string | null, token: string, role?: string | null) => {
+        const userData = { email, name, image, role };
+        set({ 
           user: userData,
           token,
           isAuthenticated: true,
-        }),
-      logout: () => set({ user: null, token: null, isAuthenticated: false }),
+          isLoading: false
+        });
+        localStorage.setItem('token', token);
+      },
+      logout: () => {
+        set({ 
+          user: null, 
+          token: null, 
+          isAuthenticated: false,
+          isLoading: false
+        });
+        localStorage.removeItem('token');
+      },
+      hydrate: async () => {
+        set({ isLoading: true });
+        try {
+          const token = localStorage.getItem('token');
+          if (token) {
+            try {
+              const parts = token.split('.');
+              if (parts.length === 3) {
+                const tokenData = JSON.parse(atob(parts[1]));
+                if (tokenData.exp * 1000 > Date.now()) {
+                  set((state) => ({ 
+                    ...state, 
+                    token,
+                    isAuthenticated: true,
+                    isLoading: false 
+                  }));
+                  return;
+                }
+              }
+            } catch (e) {
+              console.error('Invalid token format:', e);
+            }
+            localStorage.removeItem('token');
+          }
+          set({ 
+            user: null, 
+            token: null, 
+            isAuthenticated: false, 
+            isLoading: false 
+          });
+        } catch (error) {
+          console.error('Failed to hydrate auth store:', error);
+          set({ isLoading: false });
+        }
+      }
     }),
     {
       name: "auth-storage",
-    },
-  ),
-)
+      skipHydration: false
+    }
+  )
+);
 

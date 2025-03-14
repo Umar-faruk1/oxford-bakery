@@ -3,17 +3,16 @@
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
-import { motion } from "framer-motion"
 import { useAuthStore } from "@/lib/store"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, Camera, User, Lock, LogOut, Mail, ShoppingBag } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Loader2, User, Lock, LogOut, Mail, ShoppingBag } from "lucide-react"
 
-const API_URL = "http://localhost:8000"
+const API_URL = import.meta.env.VITE_API_URL
 
 export default function ProfilePage() {
   const navigate = useNavigate()
@@ -34,6 +33,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     setMounted(true)
+    useAuthStore.getState().hydrate(); // Hydrate store on mount
   }, [])
 
   useEffect(() => {
@@ -41,6 +41,14 @@ export default function ProfilePage() {
       navigate("/signin")
     }
   }, [mounted, isAuthenticated, navigate])
+
+  useEffect(() => {
+    console.log("Auth state:", {
+      user,
+      isAuthenticated,
+      token: useAuthStore.getState().token
+    });
+  }, [user, isAuthenticated]);
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -62,7 +70,7 @@ export default function ProfilePage() {
         throw new Error("No authentication token found")
       }
 
-      const response = await fetch(`${API_URL}/update-profile`, {
+      const response = await fetch(`${API_URL}/users/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -78,12 +86,13 @@ export default function ProfilePage() {
       }
 
       // Update local state
-      login(token, {
-        email: user?.email || "",
-        name: profileData.name,
-        image: user?.image,
-        role: user?.role
-      })
+      login(
+        user?.email || "",
+        profileData.name,
+        user?.image ?? null,
+        token,
+        user?.role ?? null
+      )
       
       toast.success("Profile updated successfully", {
         description: "Your profile information has been updated.",
@@ -114,7 +123,7 @@ export default function ProfilePage() {
         throw new Error("No authentication token found")
       }
 
-      const response = await fetch(`${API_URL}/update-password`, {
+      const response = await fetch(`${API_URL}/users/password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -154,52 +163,52 @@ export default function ProfilePage() {
     if (!file) return;
 
     try {
-      setSelectedImage(file)
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string)
-      }
-      reader.readAsDataURL(file)
-
-      const token = localStorage.getItem("token")
+      const token = useAuthStore.getState().token;  // Get token from store
       if (!token) {
         throw new Error("No authentication token found")
       }
+
+      console.log("Token before request:", token);
+
+      const headers = {
+        "Authorization": `Bearer ${token}`
+      };
 
       const formData = new FormData();
       formData.append("image", file);
 
       const response = await fetch(`${API_URL}/users/profile-image`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers,
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error("Failed to upload image");
+        const errorData = await response.json();
+        console.log("Full error response:", errorData);
+        throw new Error(errorData.detail || "Failed to upload image");
       }
 
       const data = await response.json();
-      login(token, {
-        email: user?.email || "",
-        name: user?.name || "",
-        image: data.image_url,
-        role: user?.role
-      })
-      setPreviewUrl(data.image_url)
-      toast.success("Profile image updated successfully", {
-        description: "Your profile picture has been updated.",
-      });
+      
+      // Update local state with new image URL
+      login(
+        user?.email || "",
+        profileData.name,
+        data.image_url,
+        token,
+        user?.role ?? null
+      );
+      
+      setPreviewUrl(data.image_url);
+      toast.success("Profile image updated successfully");
     } catch (error) {
-      console.error("Error uploading image:", error);
-      toast.error("Failed to upload image", {
-        description: error instanceof Error ? error.message : "Something went wrong",
-      });
-      // Reset preview on error
-      setPreviewUrl(user?.image || null)
-      setSelectedImage(null)
+      console.error("Full error details:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to upload image"
+      );
+      setPreviewUrl(user?.image || null);
+      setSelectedImage(null);
     }
   };
 
@@ -212,7 +221,7 @@ export default function ProfilePage() {
     navigate("/")
   }
 
-  if (!mounted || !isAuthenticated) {
+  if (!mounted || !user) {
     return <div className="container mx-auto px-4 py-12 min-h-[60vh] flex items-center justify-center">Loading...</div>
   }
 
@@ -225,7 +234,7 @@ export default function ProfilePage() {
               {previewUrl ? (
                 <img
                   src={previewUrl}
-                  alt={user?.name || "Profile"}
+                  alt={user.name}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -242,6 +251,7 @@ export default function ProfilePage() {
               className="hidden"
             />
             <button
+              type="button"
               onClick={handleUploadButtonClick}
               className="mt-2 px-4 py-2 bg-[#FF7F00] text-white rounded-md hover:bg-[#FF7F00]/90 transition-colors"
             >
@@ -249,8 +259,8 @@ export default function ProfilePage() {
             </button>
           </div>
           <div>
-            <h1 className="text-2xl font-bold">{user?.name}</h1>
-            <p className="text-gray-600">{user?.email}</p>
+            <h1 className="text-2xl font-bold">{user.name}</h1>
+            <p className="text-gray-600">{user.email}</p>
           </div>
         </div>
 

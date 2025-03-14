@@ -32,27 +32,31 @@ export default function SignInPage() {
       const response = await api.post('/auth/signin', { email, password })
       const { access_token, user } = response.data
       
-      // Store token and user data
-      login(access_token, {
-        email: user.email,
-        name: user.name,
-        image: user.image || undefined,
-        role: user.role
-      })
+      login(
+        user.email,
+        user.name,
+        user.image || null,
+        access_token,
+        user.role
+      )
       
       toast.success("Signed in successfully")
       
-      // Redirect based on role
       if (user.role === "admin") {
         navigate("/admin/dashboard")
       } else {
         navigate("/")
       }
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Failed to sign in")
-      toast.error("Failed to sign in", {
-        description: error instanceof Error ? error.message : "Invalid credentials",
-      })
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        toast.error("Invalid credentials", {
+          description: "Please check your email and password"
+        });
+      } else {
+        toast.error("Sign in failed", {
+          description: "Please try again later"
+        });
+      }
     } finally {
       setIsLoading(false)
     }
