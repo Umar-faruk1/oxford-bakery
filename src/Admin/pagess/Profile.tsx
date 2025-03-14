@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { PageTransition } from '../ui/PageTransition';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,11 +8,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Eye, EyeOff, Upload, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
+import api from '@/lib/axios';
+import { useAuthStore } from '@/lib/store';
 
 export const ProfileContent: React.FC = () => {
+  const { user: authUser, login } = useAuthStore();
   const [userData, setUserData] = useState({
-    name: 'Admin User',
-    email: 'admin@cakecommander.com',
+    name: authUser?.name || '',
+    email: authUser?.email || '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
@@ -25,7 +27,8 @@ export const ProfileContent: React.FC = () => {
     confirm: false
   });
 
-  const [avatarSrc, setAvatarSrc] = useState('/placeholder.svg');
+  const [avatarSrc, setAvatarSrc] = useState<string>(authUser?.image || '/placeholder.svg');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -35,12 +38,33 @@ export const ProfileContent: React.FC = () => {
     }));
   };
 
-  const handleProfileUpdate = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast.success('Profile updated successfully');
+  const handleProfileUpdate = async () => {
+    try {
+      setIsLoading(true);
+      const response = await api.put('/admin/profile', {
+        fullname: userData.name,
+      });
+      
+      // Update auth store with new user data
+      if (authUser) {
+        login(
+          userData.email,
+          userData.name,
+          authUser.image || '',
+          useAuthStore.getState().token || '',
+          authUser.role || 'user'
+        );
+      }
+      
+      toast.success('Profile updated successfully');
+    } catch (error) {
+      toast.error('Failed to update profile');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handlePasswordChange = (e: React.FormEvent) => {
+  const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (userData.newPassword !== userData.confirmPassword) {
@@ -48,35 +72,62 @@ export const ProfileContent: React.FC = () => {
       return;
     }
     
-    if (userData.currentPassword === '') {
-      toast.error('Current password is required');
-      return;
+    try {
+      setIsLoading(true);
+      await api.put('/admin/profile/password', {
+        current_password: userData.currentPassword,
+        new_password: userData.newPassword,
+        confirm_password: userData.confirmPassword,
+      });
+      
+      toast.success('Password changed successfully');
+      setUserData(prev => ({
+        ...prev,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }));
+    } catch (error) {
+      toast.error('Failed to change password');
+    } finally {
+      setIsLoading(false);
     }
-    
-    toast.success('Password changed successfully');
-    
-    // Reset password fields
-    setUserData(prev => ({
-      ...prev,
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    }));
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const reader = new FileReader();
+      const formData = new FormData();
+      formData.append('file', file);
       
-      reader.onload = (event) => {
-        if (event.target && typeof event.target.result === 'string') {
-          setAvatarSrc(event.target.result);
-          toast.success('Profile picture updated');
+      try {
+        setIsLoading(true);
+        const response = await api.post('/admin/profile/avatar', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        
+        const newImageUrl = response.data.image_url;
+        setAvatarSrc(newImageUrl);
+        
+        // Update auth store with new image
+        if (authUser) {
+          login(
+            authUser.email,
+            authUser.name,
+            newImageUrl || '',
+            useAuthStore.getState().token || '',
+            authUser.role || 'user'
+          );
         }
-      };
-      
-      reader.readAsDataURL(file);
+        
+        toast.success('Profile picture updated');
+      } catch (error) {
+        toast.error('Failed to update profile picture');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -99,7 +150,7 @@ export const ProfileContent: React.FC = () => {
               <CardDescription>Update your account details</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleProfileUpdate} className="space-y-6">
+              <div className="space-y-6">
                 <div className="flex flex-col items-center space-y-4 mb-6">
                   <Avatar className="h-24 w-24">
                     <AvatarImage src={avatarSrc} />
@@ -109,7 +160,12 @@ export const ProfileContent: React.FC = () => {
                   </Avatar>
                   
                   <div className="relative">
-                    <Button variant="outline" className="flex items-center gap-2" type="button">
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center gap-2" 
+                      type="button"
+                      disabled={isLoading}
+                    >
                       <Upload className="h-4 w-4" />
                       Upload Avatar
                     </Button>
@@ -118,6 +174,7 @@ export const ProfileContent: React.FC = () => {
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
                       onChange={handleAvatarChange}
                       accept="image/*"
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -130,6 +187,7 @@ export const ProfileContent: React.FC = () => {
                       name="name"
                       value={userData.name}
                       onChange={handleInputChange}
+                      disabled={isLoading}
                     />
                   </div>
                   
@@ -140,14 +198,21 @@ export const ProfileContent: React.FC = () => {
                       name="email"
                       type="email"
                       value={userData.email}
-                      onChange={handleInputChange}
+                      disabled
+                      className="bg-gray-50"
                     />
                   </div>
                 </div>
-              </form>
+              </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={handleProfileUpdate}>Update Profile</Button>
+              <Button 
+                onClick={handleProfileUpdate} 
+                type="button"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Updating...' : 'Update Profile'}
+              </Button>
             </CardFooter>
           </Card>
           
@@ -228,7 +293,12 @@ export const ProfileContent: React.FC = () => {
               </form>
             </CardContent>
             <CardFooter>
-              <Button onClick={handlePasswordChange}>Change Password</Button>
+              <Button 
+                onClick={handlePasswordChange}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Changing Password...' : 'Change Password'}
+              </Button>
             </CardFooter>
           </Card>
         </div>
