@@ -12,7 +12,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 const navItems = [
   { name: "Home", href: "/" },
   { name: "Menu", href: "/menu" },
-  { name: "Categories", href: "/categories" },
+  // { name: "Categories", href: "/categories" },
   { name: "Contact", href: "/contact" },
   { name: "About", href: "/about" },
 ]

@@ -168,7 +168,7 @@ export default function ProfilePage() {
         throw new Error("No authentication token found")
       }
 
-      console.log("Token before request:", token);
+      // console.log("Token before request:", token);
 
       const headers = {
         "Authorization": `Bearer ${token}`
@@ -185,7 +185,7 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.log("Full error response:", errorData);
+        // console.log("Full error response:", errorData);
         throw new Error(errorData.detail || "Failed to upload image");
       }
 

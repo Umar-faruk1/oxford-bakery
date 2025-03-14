@@ -12,7 +12,7 @@ const api = axios.create({
 // Add request interceptor for debugging
 api.interceptors.request.use(
   (config) => {
-    console.log('Making request to:', config.url);
+    // console.log('Making request to:', config.url);
     const token = useAuthStore.getState().token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -28,7 +28,7 @@ api.interceptors.request.use(
 // Add response interceptor for debugging
 api.interceptors.response.use(
   (response) => {
-    console.log('Response received:', response.status, response.data);
+    // console.log('Response received:', response.status, response.data);
     return response;
   },
   (error) => {

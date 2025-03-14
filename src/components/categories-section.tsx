@@ -25,9 +25,9 @@ export default function CategoriesSection() {
 
   const fetchCategories = async () => {
     try {
-      console.log('Fetching categories...')
+      // console.log('Fetching categories...')
       const response = await api.get('/menu/categories')
-      console.log('Categories response:', response.data)
+      // console.log('Categories response:', response.data)
 
       if (!response.data || !Array.isArray(response.data)) {
         throw new Error('Invalid response format')
@@ -41,14 +41,14 @@ export default function CategoriesSection() {
       }
 
       const formattedCategories = response.data.map((category: Category) => {
-        console.log('Processing category:', category)
+        // console.log('Processing category:', category)
         return {
           ...category,
           image: category.image || '/placeholder.svg'
         }
       })
 
-      console.log('Processed categories:', formattedCategories)
+      // console.log('Processed categories:', formattedCategories)
       setCategories([allCategory, ...formattedCategories])
       setError(null)
     } catch (error: any) {

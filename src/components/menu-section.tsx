@@ -9,7 +9,7 @@ import type { Cake } from "@/types/types"
 import api from "@/lib/axios"
 import { Button } from "@/components/ui/button"
 
-const API_URL = "http://localhost:8000"
+// const API_URL = "http://localhost:8000"
 const REFRESH_INTERVAL = 10000 // 10 seconds
 
 export default function MenuSection() {
@@ -23,16 +23,16 @@ export default function MenuSection() {
   // Fetch menu items
   const fetchMenuItems = async () => {
     try {
-      console.log('Fetching menu items...')
+      // console.log('Fetching menu items...')
       const response = await api.get('/menu/items')
-      console.log('Menu items response:', response.data)
+      // console.log('Menu items response:', response.data)
       
       if (!response.data || !Array.isArray(response.data)) {
         throw new Error('Invalid response format')
       }
 
       const menuItems = response.data.map((item: any) => {
-        console.log('Processing item:', item)
+        // console.log('Processing item:', item)
         return {
           id: item.id,
           name: item.name,
@@ -43,7 +43,7 @@ export default function MenuSection() {
         }
       })
 
-      console.log('Processed menu items:', menuItems)
+      // console.log('Processed menu items:', menuItems)
       setAllCakes(menuItems)
       setFilteredCakes(menuItems)
       setError(null)

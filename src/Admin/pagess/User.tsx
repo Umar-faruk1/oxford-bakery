@@ -60,7 +60,7 @@ export const UsersContent: React.FC = () => {
     try {
       setIsLoading(true);
       const response = await api.get('/admin/users');
-      console.log('API Response:', response.data);
+      // console.log('API Response:', response.data);
       
       const userData = Array.isArray(response.data) ? response.data : [];
       
@@ -75,7 +75,7 @@ export const UsersContent: React.FC = () => {
         image: user.image
       }));
       
-      console.log('Transformed Users:', transformedUsers);
+      // console.log('Transformed Users:', transformedUsers);
       setUsers(transformedUsers);
     } catch (error: any) {
       console.error('Error fetching users:', error);
