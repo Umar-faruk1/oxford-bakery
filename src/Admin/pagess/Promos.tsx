@@ -291,7 +291,7 @@ export const PromosContent: React.FC = () => {
                       <TableCell>
                         {promo.start_date} - {promo.end_date}
                       </TableCell>
-                      <TableCell>{promo.usage_count} uses</TableCell>
+                      <TableCell>{promo.usage_count || 0} uses</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <Switch 

@@ -5,8 +5,8 @@ import AppRoutes from "./routes/routes"
 const App = () => {
   return (
     <BrowserRouter>
+      <Toaster />
       <AppRoutes />
-      <Toaster position="top-center" richColors />
     </BrowserRouter>
   )
 }

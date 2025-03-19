@@ -9,69 +9,32 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ShoppingBag, Clock, CheckCircle, TruckIcon, Package } from "lucide-react"
+import axios from "@/lib/axios"
+import { toast } from "sonner"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
-// Sample order data
-const sampleOrders = [
-  {
-    id: "ORD-2023-001",
-    date: "2023-11-15",
-    status: "delivered",
-    total: 87.97,
-    items: [
-      {
-        id: 1,
-        name: "Chocolate Fudge Cake",
-        price: 32.99,
-        quantity: 1,
-        image: "/placeholder.svg?height=100&width=100",
-      },
-      {
-        id: 3,
-        name: "Strawberry Cheesecake",
-        price: 34.99,
-        quantity: 1,
-        image: "/placeholder.svg?height=100&width=100",
-      },
-    ],
-  },
-  {
-    id: "ORD-2023-002",
-    date: "2023-11-28",
-    status: "processing",
-    total: 42.99,
-    items: [
-      {
-        id: 8,
-        name: "Custom Photo Cake",
-        price: 42.99,
-        quantity: 1,
-        image: "/placeholder.svg?height=100&width=100",
-      },
-    ],
-  },
-  {
-    id: "ORD-2023-003",
-    date: "2023-12-05",
-    status: "pending",
-    total: 55.98,
-    items: [
-      {
-        id: 5,
-        name: "Red Velvet Cupcakes (6)",
-        price: 18.99,
-        quantity: 1,
-        image: "/placeholder.svg?height=100&width=100",
-      },
-      {
-        id: 6,
-        name: "Lemon Drizzle Cake",
-        price: 26.99,
-        quantity: 1,
-        image: "/placeholder.svg?height=100&width=100",
-      },
-    ],
-  },
-]
+interface OrderItem {
+  id: number;
+  menu_item_id: number;
+  quantity: number;
+  price: number;
+  menu_item: {
+    name: string;
+    image: string;
+  };
+}
+
+interface Order {
+  id: number;
+  reference: string;
+  amount: number;
+  delivery_fee: number;
+  discount: number;
+  final_amount: number;
+  status: string;
+  created_at: string;
+  items: OrderItem[];
+}
 
 const getStatusIcon = (status: string) => {
   switch (status) {
@@ -103,10 +66,16 @@ export default function OrdersPage() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuthStore()
   const [mounted, setMounted] = useState(false)
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+    if (isAuthenticated) {
+      fetchOrders()
+    }
+  }, [isAuthenticated])
 
   useEffect(() => {
     if (mounted && !isAuthenticated) {
@@ -114,8 +83,30 @@ export default function OrdersPage() {
     }
   }, [mounted, isAuthenticated, navigate])
 
+  const fetchOrders = async () => {
+    try {
+      setLoading(true)
+      const response = await axios.get('/payments/orders')
+      setOrders(response.data)
+      setError(null)
+    } catch (error: any) {
+      console.error('Error fetching orders:', error)
+      setError(error.response?.data?.detail || 'Error fetching orders')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (!mounted || !isAuthenticated) {
     return <div className="container mx-auto px-4 py-12 min-h-[60vh] flex items-center justify-center">Loading...</div>
+  }
+
+  if (loading) {
+    return <div className="container mx-auto px-4 py-12 min-h-[60vh] flex items-center justify-center">Loading orders...</div>
+  }
+
+  if (error) {
+    return <div className="container mx-auto px-4 py-12 min-h-[60vh] flex items-center justify-center">Error: {error}</div>
   }
 
   return (
@@ -130,67 +121,7 @@ export default function OrdersPage() {
         </Link>
       </div>
 
-      {sampleOrders.length > 0 ? (
-        <div className="space-y-6">
-          {sampleOrders.map((order, index) => (
-            <motion.div
-              key={order.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        Order #{order.id}
-                        {getStatusIcon(order.status)}
-                      </CardTitle>
-                      <CardDescription>
-                        Placed on{" "}
-                        {new Date(order.date).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </CardDescription>
-                    </div>
-                    <div>{getStatusBadge(order.status)}</div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {order.items.map((item) => (
-                      <div key={item.id} className="flex items-center gap-4">
-                        <div className="relative h-16 w-16 rounded-md overflow-hidden flex-shrink-0">
-                          <img
-                            src={item.image || "/placeholder.svg"}
-                            alt={item.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium">{item.name}</h3>
-                          <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
-                        </div>
-                        <div className="font-medium">GH₵{item.price.toFixed(2)}</div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-between border-t pt-4">
-                  <Button variant="outline">View Details</Button>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-500">Total Amount</p>
-                    <p className="font-bold text-lg">GH₵{order.total.toFixed(2)}</p>
-                  </div>
-                </CardFooter>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      ) : (
+      {orders.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow-sm">
           <ShoppingBag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h2 className="text-xl font-semibold mb-2">No Orders Yet</h2>
@@ -199,6 +130,46 @@ export default function OrdersPage() {
             <Button className="bg-[#FF7F00] hover:bg-[#FF7F00]/90">Browse Menu</Button>
           </Link>
         </div>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>My Orders</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Order ID</TableHead>
+                  <TableHead>Reference</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {orders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell>{order.id}</TableCell>
+                    <TableCell>{order.reference}</TableCell>
+                    <TableCell>GH₵{order.final_amount.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <Badge variant={
+                        order.status === 'delivered' ? 'default' : 
+                        order.status === 'processing' ? 'secondary' : 
+                        'destructive'
+                      }>
+                        {order.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(order.created_at).toLocaleDateString()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       )}
     </div>
   )

@@ -7,7 +7,7 @@ import { Loader2 } from "lucide-react"
 import api from "@/lib/axios"
 import { Button } from "@/components/ui/button"
 
-const API_URL = "http://localhost:8000"
+// const API_URL = "http://localhost:8000"
 const REFRESH_INTERVAL = 10000 // 10 seconds
 
 interface Category {

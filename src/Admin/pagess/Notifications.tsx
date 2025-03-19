@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageTransition } from '../ui/PageTransition';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,6 +7,7 @@ import { Check, CheckCheck, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import axios from '@/lib/axios';
 
 interface Notification {
   id: string;
@@ -18,64 +18,56 @@ interface Notification {
   type: 'order' | 'user' | 'system';
 }
 
-export const NotificationsContent: React.FC = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      title: 'New Order',
-      message: 'Order #12345 has been placed',
-      timestamp: '2023-06-01T10:30:00',
-      read: false,
-      type: 'order'
-    },
-    {
-      id: '2',
-      title: 'Order Updated',
-      message: 'Order #12340 status changed to "Delivered"',
-      timestamp: '2023-06-01T09:15:00',
-      read: false,
-      type: 'order'
-    },
-    {
-      id: '3',
-      title: 'New User',
-      message: 'John Doe registered as a new user',
-      timestamp: '2023-05-31T16:45:00',
-      read: true,
-      type: 'user'
-    },
-    {
-      id: '4',
-      title: 'System Update',
-      message: 'System maintenance scheduled for tonight',
-      timestamp: '2023-05-31T14:20:00',
-      read: true,
-      type: 'system'
-    },
-    {
-      id: '5',
-      title: 'Promo Added',
-      message: 'New promotion "Summer Special" has been added',
-      timestamp: '2023-05-30T11:10:00',
-      read: false,
-      type: 'system'
-    }
-  ]);
+// Add WebSocket connection
+const ws = new WebSocket('ws://localhost:8000/ws/notifications');
 
-  const markAsRead = (id: string) => {
-    setNotifications(prevNotifications =>
-      prevNotifications.map(notification =>
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
-    toast.success('Notification marked as read');
+export const NotificationsContent: React.FC = () => {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await axios.get('/notifications');
+      setNotifications(response.data);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prevNotifications =>
-      prevNotifications.map(notification => ({ ...notification, read: true }))
-    );
-    toast.success('All notifications marked as read');
+  useEffect(() => {
+    fetchNotifications();
+
+    // Listen for real-time notifications
+    ws.onmessage = (event) => {
+      const notification = JSON.parse(event.data);
+      setNotifications(prev => [notification, ...prev]);
+      
+      // Show toast for new notifications
+      toast.info(notification.title, {
+        description: notification.message
+      });
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  const markAsRead = async (id: number) => {
+    try {
+      await axios.patch(`/notifications/${id}/read`);
+      fetchNotifications();
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      await axios.patch('/notifications/read-all');
+      fetchNotifications();
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
   };
 
   const deleteNotification = (id: string) => {
@@ -156,7 +148,7 @@ export const NotificationsContent: React.FC = () => {
                         <div className="flex space-x-2">
                           {!notification.read && (
                             <Button
-                              onClick={() => markAsRead(notification.id)}
+                              onClick={() => markAsRead(parseInt(notification.id))}
                               variant="ghost"
                               size="sm"
                               className="h-8 w-8 p-0"

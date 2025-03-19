@@ -4,6 +4,7 @@ import { useAuthStore } from './store';
 // Create axios instance with custom config
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,  // Important for CORS
   headers: {
     'Content-Type': 'application/json',
   },
@@ -13,7 +14,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // console.log('Making request to:', config.url);
-    const token = useAuthStore.getState().token;
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

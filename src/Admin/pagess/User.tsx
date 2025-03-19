@@ -29,11 +29,15 @@ interface User {
   id: number;
   fullname: string;
   email: string;
-  role: 'admin' | 'users';
-  status: 'active' | 'inactive';
-  orders: number;
-  joinDate: string;
+  role: string;
+  status: string;
   image: string | null;
+  created_at: string;
+  updated_at: string | null;
+  customer: {
+    name: string;
+    initials: string;
+  };
 }
 
 export const UsersContent: React.FC = () => {
@@ -60,23 +64,10 @@ export const UsersContent: React.FC = () => {
     try {
       setIsLoading(true);
       const response = await api.get('/admin/users');
-      // console.log('API Response:', response.data);
       
-      const userData = Array.isArray(response.data) ? response.data : [];
+      // The backend now returns properly formatted data, so we can use it directly
+      setUsers(response.data);
       
-      const transformedUsers = userData.map(user => ({
-        id: user.id,
-        fullname: user.name,
-        email: user.email,
-        role: user.role as 'admin' | 'users',
-        status: user.status as 'active' | 'inactive',
-        orders: user.orders,
-        joinDate: user.joinDate,
-        image: user.image
-      }));
-      
-      // console.log('Transformed Users:', transformedUsers);
-      setUsers(transformedUsers);
     } catch (error: any) {
       console.error('Error fetching users:', error);
       if (error.response?.status === 403) {
@@ -288,7 +279,6 @@ export const UsersContent: React.FC = () => {
                       <TableHead>User</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Orders</TableHead>
                       <TableHead>Join Date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -300,12 +290,10 @@ export const UsersContent: React.FC = () => {
                           <div className="flex items-center space-x-3">
                             <Avatar>
                               <AvatarImage src={user.image || '/placeholder.svg'} />
-                              <AvatarFallback>
-                                {user.fullname ? user.fullname.split(' ').map(n => n[0]).join('') : 'U'}
-                              </AvatarFallback>
+                              <AvatarFallback>{user.customer.initials}</AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{user.fullname || 'Unknown User'}</div>
+                              <div className="font-medium">{user.fullname}</div>
                               <div className="text-sm text-muted-foreground">{user.email}</div>
                             </div>
                           </div>
@@ -336,8 +324,7 @@ export const UsersContent: React.FC = () => {
                             </Badge>
                           </div>
                         </TableCell>
-                        <TableCell>{user.orders}</TableCell>
-                        <TableCell>{user.joinDate}</TableCell>
+                        <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>

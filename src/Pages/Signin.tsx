@@ -5,7 +5,6 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
-import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,11 +12,10 @@ import { toast } from "sonner"
 import { Loader2, Mail, Lock, AlertCircle } from "lucide-react"
 import { FcGoogle } from "react-icons/fc"
 import api from "@/lib/axios"
+import { useAuthStore } from "@/lib/store"
 
 export default function SignInPage() {
   const navigate = useNavigate()
-  const { login } = useAuth()
-
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -30,33 +28,31 @@ export default function SignInPage() {
 
     try {
       const response = await api.post('/auth/signin', { email, password })
-      const { access_token, user } = response.data
-      
-      login(
-        user.email,
-        user.name,
-        user.image || null,
-        access_token,
-        user.role
-      )
-      
-      toast.success("Signed in successfully")
-      
-      if (user.role === "admin") {
-        navigate("/admin/dashboard")
-      } else {
-        navigate("/")
+      console.log('Signin response:', response.data)
+
+      if (response.data.access_token) {
+        useAuthStore.getState().login(
+          response.data.user.email,
+          response.data.user.name,
+          response.data.user.image,
+          response.data.access_token,
+          response.data.user.role
+        )
+        
+        console.log('Authentication successful, navigating...')
+        
+        if (response.data.user.role === 'admin') {
+          navigate('/admin/dashboard')
+        } else {
+          navigate('/')
+        }
+
+        toast.success('Signed in successfully!')
       }
     } catch (error: any) {
-      if (error.response?.status === 401) {
-        toast.error("Invalid credentials", {
-          description: "Please check your email and password"
-        });
-      } else {
-        toast.error("Sign in failed", {
-          description: "Please try again later"
-        });
-      }
+      console.error('Signin error:', error)
+      setError(error.response?.data?.detail || 'Failed to sign in')
+      toast.error(error.response?.data?.detail || 'Failed to sign in')
     } finally {
       setIsLoading(false)
     }

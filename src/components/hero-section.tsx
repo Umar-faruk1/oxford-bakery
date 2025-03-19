@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import backgroundImage from "@/assets/background.jpg"
+import { Link } from "react-router-dom"
 
 export default function HeroSection() {
   return (
@@ -47,9 +48,11 @@ export default function HeroSection() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Button size="lg" className="bg-[#FF7F00] hover:bg-[#FF7F00]/90 text-white">
+            <Link to="/menu">
+            <Button size="lg" className="bg-[#FF7F00] hover:bg-[#FF7F00]/90 text-white" >
               View Menu
             </Button>
+            </Link>
           </motion.div>
         </motion.div>
       </div>
