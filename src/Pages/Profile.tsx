@@ -311,7 +311,7 @@ export default function ProfilePage() {
                       <Input
                         id="name"
                         name="name"
-                        value={profileData.name}
+                        value={user?.name || ""}
                         onChange={handleProfileChange}
                         className="pl-10"
                         disabled={isLoading}

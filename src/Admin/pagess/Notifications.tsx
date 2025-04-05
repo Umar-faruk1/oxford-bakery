@@ -10,67 +10,57 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import axios from '@/lib/axios';
 
 interface Notification {
-  id: string;
+  id: number;
   title: string;
   message: string;
-  timestamp: string;
   read: boolean;
-  type: 'order' | 'user' | 'system';
+  created_at: string;
 }
-
-// Add WebSocket connection
-const ws = new WebSocket('ws://localhost:8000/ws/notifications');
 
 export const NotificationsContent: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchNotifications = async () => {
     try {
       const response = await axios.get('/notifications');
       setNotifications(response.data);
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching notifications:', error);
+      toast.error('Failed to fetch notifications');
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchNotifications();
-
-    // Listen for real-time notifications
-    ws.onmessage = (event) => {
-      const notification = JSON.parse(event.data);
-      setNotifications(prev => [notification, ...prev]);
-      
-      // Show toast for new notifications
-      toast.info(notification.title, {
-        description: notification.message
-      });
-    };
-
-    return () => {
-      ws.close();
-    };
   }, []);
 
   const markAsRead = async (id: number) => {
     try {
       await axios.patch(`/notifications/${id}/read`);
-      fetchNotifications();
+      setNotifications(notifications.map(notif =>
+        notif.id === id ? { ...notif, read: true } : notif
+      ));
     } catch (error) {
       console.error('Error marking notification as read:', error);
+      toast.error('Failed to mark notification as read');
     }
   };
 
   const markAllAsRead = async () => {
     try {
       await axios.patch('/notifications/read-all');
-      fetchNotifications();
+      setNotifications(notifications.map(notif => ({ ...notif, read: true })));
+      toast.success('All notifications marked as read');
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
+      toast.error('Failed to mark all notifications as read');
     }
   };
 
-  const deleteNotification = (id: string) => {
+  const deleteNotification = (id: number) => {
     setNotifications(prevNotifications =>
       prevNotifications.filter(notification => notification.id !== id)
     );
@@ -133,12 +123,12 @@ export const NotificationsContent: React.FC = () => {
                   {notifications.map((notification) => (
                     <TableRow key={notification.id} className={notification.read ? '' : 'bg-muted/30 font-medium'}>
                       <TableCell>
-                        <div className={`w-3 h-3 rounded-full ${getTypeColor(notification.type)} mr-2`}></div>
-                        {notification.type.charAt(0).toUpperCase() + notification.type.slice(1)}
+                        <div className={`w-3 h-3 rounded-full ${getTypeColor(notification.title)} mr-2`}></div>
+                        {notification.title.charAt(0).toUpperCase() + notification.title.slice(1)}
                       </TableCell>
                       <TableCell>{notification.title}</TableCell>
                       <TableCell>{notification.message}</TableCell>
-                      <TableCell>{formatDate(notification.timestamp)}</TableCell>
+                      <TableCell>{formatDate(notification.created_at)}</TableCell>
                       <TableCell>
                         <Badge variant={notification.read ? "outline" : "default"}>
                           {notification.read ? 'Read' : 'Unread'}
@@ -148,7 +138,7 @@ export const NotificationsContent: React.FC = () => {
                         <div className="flex space-x-2">
                           {!notification.read && (
                             <Button
-                              onClick={() => markAsRead(parseInt(notification.id))}
+                              onClick={() => markAsRead(notification.id)}
                               variant="ghost"
                               size="sm"
                               className="h-8 w-8 p-0"

@@ -181,6 +181,11 @@ export const UsersContent: React.FC = () => {
     }
   };
 
+  const getUserInitials = (user: any) => {
+    if (!user || !user.fullname) return 'U';
+    return user.fullname.charAt(0).toUpperCase();
+  };
+
   return (
     <PageTransition>
       <div className="space-y-8">
@@ -289,11 +294,13 @@ export const UsersContent: React.FC = () => {
                         <TableCell>
                           <div className="flex items-center space-x-3">
                             <Avatar>
-                              <AvatarImage src={user.image || '/placeholder.svg'} />
-                              <AvatarFallback>{user.customer.initials}</AvatarFallback>
+                              <AvatarImage src={user.image || ''} />
+                              <AvatarFallback>
+                                {getUserInitials(user)}
+                              </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{user.fullname}</div>
+                              <div className="font-medium">{user.fullname || 'Unknown'}</div>
                               <div className="text-sm text-muted-foreground">{user.email}</div>
                             </div>
                           </div>

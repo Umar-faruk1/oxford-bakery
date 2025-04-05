@@ -16,7 +16,7 @@ const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string
 
 interface PromoCode {
   code: string
-  discount: string
+  discount: number
 }
 
 export default function CheckoutPage() {
@@ -67,38 +67,60 @@ export default function CheckoutPage() {
     }))
   }
 
+  const subtotal = getTotalPrice();
+  const finalTotal = subtotal + DELIVERY_FEE - (activePromo?.discount ?? 0);
+
   const handlePaystackSuccess = async (reference: any) => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      await axios.post("/payments/create-order", {
-        reference: reference.reference,
-        amount: finalTotal,
+      const orderPayload = {
+        amount: subtotal,
+        delivery_fee: DELIVERY_FEE,
+        final_amount: finalTotal,
+        payment_reference: reference.reference,
         email: customerInfo.email,
         name: customerInfo.name,
         phone: customerInfo.phone,
         address: customerInfo.address,
-        promo_code: activePromo?.code,
         items: items.map(item => ({
           menu_item_id: item.id,
+          name: item.name,
           quantity: item.quantity,
-          price: item.price
+          price: item.price,
+          image: item.image
         }))
-      });
+      };
+      console.log('Order payload:', orderPayload);
 
-      await axios.post(`/payments/verify/${reference.reference}`);
+      try {
+        const orderResponse = await axios.post("/orders", orderPayload);
+        console.log('Order response:', orderResponse.data);
+      } catch (orderError: any) {
+        console.error('Order creation error:', {
+          data: orderError.response?.data,
+          status: orderError.response?.status,
+          error: orderError.message,
+          details: orderError.response?.data?.detail
+        });
+        throw orderError;
+      }
 
-      toast.success("Payment successful!", {
-        description: "Your order has been placed and will be delivered soon."
-      });
-      
-      clearCart();
-      setTimeout(() => {
+      try {
+        await axios.post(`/verify-payment/${reference.reference}`);
+        clearCart();
         navigate("/order-success");
-      }, 100);
+        toast.success("Payment successful!");
+      } catch (verifyError: any) {
+        console.error('Payment verification error:', verifyError.response?.data);
+        throw verifyError;
+      }
     } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Error processing payment";
+      console.error('Full error:', error);
+      console.error('Error details:', error.response?.data?.detail);
+      const errorMessage = Array.isArray(error.response?.data?.detail) 
+        ? error.response?.data?.detail[0]?.msg 
+        : error.response?.data?.detail || 'Payment verification failed';
       toast.error(errorMessage);
-      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -115,7 +137,7 @@ export default function CheckoutPage() {
       toast.success("Promo code applied successfully!");
       setActivePromo({
         code: response.data.code,
-        discount: response.data.discount
+        discount: Number(response.data.discount)
       });
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || "Error validating promo code";
@@ -133,18 +155,9 @@ export default function CheckoutPage() {
   
   const calculateDiscountedTotal = () => {
     if (!activePromo) return total + DELIVERY_FEE;
-    
-    const discount = activePromo.discount;
-    if (discount.endsWith('%')) {
-      const percentage = parseFloat(discount.slice(0, -1));
-      return (total * (1 - percentage / 100)) + DELIVERY_FEE;
-    } else {
-      const amount = parseFloat(discount);
-      return Math.max(0, total - amount) + DELIVERY_FEE;
-    }
+    return Math.max(0, total - activePromo.discount) + DELIVERY_FEE;
   }
 
-  const finalTotal = calculateDiscountedTotal();
   const amount = Math.round(finalTotal * 100) // Paystack expects amount in kobo/pesewas
 
   const validateForm = () => {

@@ -86,7 +86,7 @@ export default function OrdersPage() {
   const fetchOrders = async () => {
     try {
       setLoading(true)
-      const response = await axios.get('/payments/orders')
+      const response = await axios.get('/orders')
       setOrders(response.data)
       setError(null)
     } catch (error: any) {
