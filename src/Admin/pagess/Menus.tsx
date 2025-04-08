@@ -162,12 +162,9 @@ export const MenuItemsContent: React.FC = () => {
         formData.append('image', newImage);
       }
 
-      // Log form data for debugging
-      // for (let [key, value] of formData.entries()) {
-      //   console.log(`${key}: ${value}`);
-      // }
-
-
+      const response = await api.post('/menu/items', formData);
+      console.log('Item added:', response.data);
+      
       await fetchMenuItems();
       setNewItem({
         name: '',

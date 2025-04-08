@@ -107,62 +107,68 @@ export const NotificationsContent: React.FC = () => {
             <CardTitle>All Notifications</CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[calc(100vh-300px)]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[100px]">Type</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Message</TableHead>
-                    <TableHead className="w-[150px]">Date</TableHead>
-                    <TableHead className="w-[100px]">Status</TableHead>
-                    <TableHead className="w-[120px]">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {notifications.map((notification) => (
-                    <TableRow key={notification.id} className={notification.read ? '' : 'bg-muted/30 font-medium'}>
-                      <TableCell>
-                        <div className={`w-3 h-3 rounded-full ${getTypeColor(notification.title)} mr-2`}></div>
-                        {notification.title.charAt(0).toUpperCase() + notification.title.slice(1)}
-                      </TableCell>
-                      <TableCell>{notification.title}</TableCell>
-                      <TableCell>{notification.message}</TableCell>
-                      <TableCell>{formatDate(notification.created_at)}</TableCell>
-                      <TableCell>
-                        <Badge variant={notification.read ? "outline" : "default"}>
-                          {notification.read ? 'Read' : 'Unread'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          {!notification.read && (
+            {loading ? (
+              <div className="flex justify-center items-center h-40">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              </div>
+            ) : (
+              <ScrollArea className="h-[calc(100vh-300px)]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[100px]">Type</TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Message</TableHead>
+                      <TableHead className="w-[150px]">Date</TableHead>
+                      <TableHead className="w-[100px]">Status</TableHead>
+                      <TableHead className="w-[120px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {notifications.map((notification) => (
+                      <TableRow key={notification.id} className={notification.read ? '' : 'bg-muted/30 font-medium'}>
+                        <TableCell>
+                          <div className={`w-3 h-3 rounded-full ${getTypeColor(notification.title)} mr-2`}></div>
+                          {notification.title.charAt(0).toUpperCase() + notification.title.slice(1)}
+                        </TableCell>
+                        <TableCell>{notification.title}</TableCell>
+                        <TableCell>{notification.message}</TableCell>
+                        <TableCell>{formatDate(notification.created_at)}</TableCell>
+                        <TableCell>
+                          <Badge variant={notification.read ? "outline" : "default"}>
+                            {notification.read ? 'Read' : 'Unread'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            {!notification.read && (
+                              <Button
+                                onClick={() => markAsRead(notification.id)}
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                              >
+                                <Check className="h-4 w-4" />
+                                <span className="sr-only">Mark as read</span>
+                              </Button>
+                            )}
                             <Button
-                              onClick={() => markAsRead(notification.id)}
+                              onClick={() => deleteNotification(notification.id)}
                               variant="ghost"
                               size="sm"
                               className="h-8 w-8 p-0"
                             >
-                              <Check className="h-4 w-4" />
-                              <span className="sr-only">Mark as read</span>
+                              <Trash2 className="h-4 w-4" />
+                              <span className="sr-only">Delete</span>
                             </Button>
-                          )}
-                          <Button
-                            onClick={() => deleteNotification(notification.id)}
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Delete</span>
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollArea>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            )}
           </CardContent>
         </Card>
       </div>

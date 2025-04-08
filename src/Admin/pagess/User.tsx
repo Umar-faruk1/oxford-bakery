@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { PageTransition } from '../ui/PageTransition';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Edit, Plus, Trash2, MoreHorizontal, UserPlus } from 'lucide-react';
+import { Edit, Trash2, MoreHorizontal, UserPlus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { 
   Dialog, 
@@ -41,7 +40,6 @@ interface User {
 }
 
 export const UsersContent: React.FC = () => {
-  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);

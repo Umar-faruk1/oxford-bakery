@@ -16,7 +16,8 @@ const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string
 
 interface PromoCode {
   code: string
-  discount: number
+  discount: string  // Changed to string to handle both percentage and fixed amounts
+  type: 'percentage' | 'fixed'
 }
 
 export default function CheckoutPage() {
@@ -67,12 +68,41 @@ export default function CheckoutPage() {
     }))
   }
 
+  const total = getTotalPrice()
+  
+  const calculateDiscountedTotal = (): number => {
+    if (!activePromo) return total + DELIVERY_FEE;
+    
+    let discountAmount = 0;
+    if (activePromo.type === 'percentage') {
+      const percentage = parseFloat(activePromo.discount.replace('%', ''));
+      discountAmount = (total * percentage) / 100;
+    } else {
+      discountAmount = parseFloat(activePromo.discount);
+    }
+    
+    return Math.max(0, total - discountAmount) + DELIVERY_FEE;
+  }
+
+  const calculateDiscountAmount = (): number => {
+    if (!activePromo) return 0;
+    
+    if (activePromo.type === 'percentage') {
+      const percentage = parseFloat(activePromo.discount.replace('%', ''));
+      return (total * percentage) / 100;
+    } else {
+      return parseFloat(activePromo.discount);
+    }
+  }
+
   const subtotal = getTotalPrice();
-  const finalTotal = subtotal + DELIVERY_FEE - (activePromo?.discount ?? 0);
+  const finalTotal: number = calculateDiscountedTotal();
+  const amount = Math.round(finalTotal * 100); // Paystack expects amount in kobo/pesewas
 
   const handlePaystackSuccess = async (reference: any) => {
     setIsSubmitting(true);
     try {
+      // First create the order
       const orderPayload = {
         amount: subtotal,
         delivery_fee: DELIVERY_FEE,
@@ -82,6 +112,7 @@ export default function CheckoutPage() {
         name: customerInfo.name,
         phone: customerInfo.phone,
         address: customerInfo.address,
+        promo_code: activePromo?.code || null,
         items: items.map(item => ({
           menu_item_id: item.id,
           name: item.name,
@@ -90,36 +121,21 @@ export default function CheckoutPage() {
           image: item.image
         }))
       };
-      console.log('Order payload:', orderPayload);
 
-      try {
-        const orderResponse = await axios.post("/orders", orderPayload);
-        console.log('Order response:', orderResponse.data);
-      } catch (orderError: any) {
-        console.error('Order creation error:', {
-          data: orderError.response?.data,
-          status: orderError.response?.status,
-          error: orderError.message,
-          details: orderError.response?.data?.detail
-        });
-        throw orderError;
-      }
+      // Create order first
+      const orderResponse = await axios.post("/orders", orderPayload);
+      console.log('Order created:', orderResponse.data);
 
-      try {
-        await axios.post(`/verify-payment/${reference.reference}`);
-        clearCart();
-        navigate("/order-success");
-        toast.success("Payment successful!");
-      } catch (verifyError: any) {
-        console.error('Payment verification error:', verifyError.response?.data);
-        throw verifyError;
-      }
+      // Then verify payment
+      await axios.post(`/verify-payment/${reference.reference}`);
+      
+      // Clear cart and show success
+      clearCart();
+      toast.success("Payment successful! Your order is being processed.");
+      navigate("/order-success");
     } catch (error: any) {
-      console.error('Full error:', error);
-      console.error('Error details:', error.response?.data?.detail);
-      const errorMessage = Array.isArray(error.response?.data?.detail) 
-        ? error.response?.data?.detail[0]?.msg 
-        : error.response?.data?.detail || 'Payment verification failed';
+      console.error('Payment error:', error);
+      const errorMessage = error.response?.data?.detail || 'Payment verification failed';
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -127,18 +143,23 @@ export default function CheckoutPage() {
   };
 
   const handlePaystackClose = () => {
-    toast.error("Payment cancelled")
+    toast.error("Payment cancelled. Please try again.");
   }
 
   const validatePromoCode = async () => {
     setError("");
     try {
       const response = await axios.post("/promo/validate", { code: promoCode });
-      toast.success("Promo code applied successfully!");
+      const discountValue = response.data.discount;
+      const isPercentage = discountValue.includes('%');
+      const numericValue = parseFloat(discountValue.replace('%', ''));
+      
       setActivePromo({
         code: response.data.code,
-        discount: Number(response.data.discount)
+        discount: discountValue,
+        type: isPercentage ? 'percentage' : 'fixed'
       });
+      toast.success("Promo code applied successfully!");
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || "Error validating promo code";
       toast.error(errorMessage);
@@ -150,15 +171,6 @@ export default function CheckoutPage() {
   if (!mounted) {
     return <div className="container mx-auto px-4 py-12 min-h-[60vh] flex items-center justify-center">Loading...</div>
   }
-
-  const total = getTotalPrice()
-  
-  const calculateDiscountedTotal = () => {
-    if (!activePromo) return total + DELIVERY_FEE;
-    return Math.max(0, total - activePromo.discount) + DELIVERY_FEE;
-  }
-
-  const amount = Math.round(finalTotal * 100) // Paystack expects amount in kobo/pesewas
 
   const validateForm = () => {
     if (!customerInfo.email || !customerInfo.email.includes('@')) {
@@ -207,112 +219,116 @@ export default function CheckoutPage() {
       <Card className="max-w-md mx-auto p-6">
         <h1 className="text-2xl font-bold mb-6">Checkout</h1>
 
-        <div className="space-y-4 mb-6">
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={customerInfo.email}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="name">Full Name</Label>
-            <Input
-              id="name"
-              name="name"
-              value={customerInfo.name}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input
-              id="phone"
-              name="phone"
-              value={customerInfo.phone}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="address">Delivery Address</Label>
-            <Input
-              id="address"
-              name="address"
-              value={customerInfo.address}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="space-y-4 mb-6">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Enter promo code"
-              value={promoCode}
-              onChange={(e) => setPromoCode(e.target.value)}
-            />
-            <Button onClick={validatePromoCode}>Apply</Button>
-          </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          {activePromo && (
-            <p className="text-green-600 text-sm">
-              Promo code applied! Discount: {activePromo.discount}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-3 mb-6 pt-4 border-t">
-          <div className="flex justify-between">
-            <span>Subtotal</span>
-            <span>GH₵{total.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Delivery Fee</span>
-            <span>GH₵{DELIVERY_FEE.toFixed(2)}</span>
-          </div>
-          {activePromo && (
-            <div className="flex justify-between text-green-600">
-              <span>Discount</span>
-              <span>-GH₵{(total - (finalTotal - DELIVERY_FEE)).toFixed(2)}</span>
-            </div>
-          )}
-          <div className="flex justify-between font-bold">
-            <span>Total</span>
-            <span>GH₵{finalTotal.toFixed(2)}</span>
-          </div>
-        </div>
-
         {isSubmitting ? (
-          <Button disabled className="w-full">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Processing...
-          </Button>
-        ) : validateForm() && PAYSTACK_PUBLIC_KEY ? (
-          <PaystackButton
-            {...getPaystackConfig()}
-            text="Pay with Paystack"
-            onSuccess={handlePaystackSuccess}
-            onClose={handlePaystackClose}
-            className="w-full bg-[#0BA4DB] hover:bg-[#0BA4DB]/90 text-white py-2 px-4 rounded-md"
-          />
+          <div className="flex flex-col items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin mb-4" />
+            <p className="text-center">Processing your payment...</p>
+          </div>
         ) : (
-          <Button 
-            disabled 
-            className="w-full"
-            onClick={() => validateForm()}
-          >
-            {!PAYSTACK_PUBLIC_KEY ? "Payment Not Configured" : "Complete Form to Continue"}
-          </Button>
+          <>
+            <div className="space-y-4 mb-6">
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={customerInfo.email}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={customerInfo.name}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  value={customerInfo.phone}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="address">Delivery Address</Label>
+                <Input
+                  id="address"
+                  name="address"
+                  value={customerInfo.address}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter promo code"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                />
+                <Button onClick={validatePromoCode}>Apply</Button>
+              </div>
+              {error && <p className="text-red-500 text-sm">{error}</p>}
+              {activePromo && (
+                <p className="text-green-600 text-sm">
+                  Promo code applied! Discount: {activePromo.discount}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div className="flex justify-between">
+                <span>Subtotal:</span>
+                <span>GH₵ {subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Delivery Fee:</span>
+                <span>GH₵ {DELIVERY_FEE.toFixed(2)}</span>
+              </div>
+              {activePromo && (
+                <div className="flex justify-between text-green-600">
+                  <span>Discount:</span>
+                  <span>-GH₵ {calculateDiscountAmount().toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-bold text-lg border-t pt-2">
+                <span>Total:</span>
+                <span>GH₵ {finalTotal.toFixed(2)}</span>
+              </div>
+            </div>
+
+            {validateForm() && PAYSTACK_PUBLIC_KEY ? (
+              <PaystackButton
+                {...getPaystackConfig()}
+                text={isSubmitting ? "Processing..." : "Pay with Paystack"}
+                onSuccess={handlePaystackSuccess}
+                onClose={handlePaystackClose}
+                className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90 disabled:opacity-50"
+                disabled={isSubmitting}
+              />
+            ) : (
+              <Button
+                className="w-full"
+                disabled={true}
+              >
+                {!PAYSTACK_PUBLIC_KEY ? "Payment Not Configured" : "Complete Form to Continue"}
+              </Button>
+            )}
+          </>
         )}
       </Card>
     </div>

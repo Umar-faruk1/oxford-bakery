@@ -7,7 +7,7 @@ import Signup from "../Pages/Signup";
 import Cart from "../Pages/Cart";
 import Checkout from "../Pages/Checkout";
 import Contact from "../Pages/Contact";
-import OrderSuccess from "../Pages/Order-Success";
+import OrderSuccess from "../Pages/OrderSuccess";
 import Orders from "../Pages/Orders";
 import Profile from "../Pages/Profile";
 import ProtectedRoute from "./protectedRoute";
@@ -54,39 +54,37 @@ const MainLayout = () => {
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Public Routes with Main Layout */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/menu" element={<Menu />} />
         <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/contact" element={<Contact />} />
-      </Route>
-
-      {/* Admin Routes with Admin Layout */}
-      <Route element={<AdminLayout />}>
-        <Route element={<AdminProtectedRoute />}>
-          <Route path="/admin/dashboard" element={<DashboardPage />} />
-          <Route path="/admin/dashboard/promos" element={<PromosContent/>} />
-          <Route path="/admin/dashboard/users" element={<UsersContent/>} />
-          <Route path="/admin/dashboard/orders" element={<OrdersContent/>} />
-          <Route path="/admin/dashboard/menu" element={<MenuItemsContent/>} />
-          <Route path="/admin/dashboard/notifications" element={<NotificationsContent/>} />
-          <Route path="/admin/dashboard/profile" element={<ProfileContent/>} />
-          <Route path="/admin/dashboard/categories" element={<CategoriesContent/>} />
-        </Route>
-      </Route>
-
-      {/* Protected Routes (Only for authenticated users) */}
-      <Route element={<MainLayout />}>
+        <Route path="/cart" element={<Cart />} />
+        
+        {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-success" element={<OrderSuccess />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/profile" element={<Profile />} />
+        </Route>
+      </Route>
+
+      {/* Admin Routes */}
+      <Route element={<AdminProtectedRoute />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="/admin/dashboard" element={<DashboardPage />} />
+          <Route path="/admin/dashboard/promos" element={<PromosContent />} />
+          <Route path="/admin/dashboard/users" element={<UsersContent />} />
+          <Route path="/admin/dashboard/orders" element={<OrdersContent />} />
+          <Route path="/admin/dashboard/menu" element={<MenuItemsContent />} />
+          <Route path="/admin/dashboard/notifications" element={<NotificationsContent />} />
+          <Route path="/admin/dashboard/profile" element={<ProfileContent />} />
+          <Route path="/admin/dashboard/categories" element={<CategoriesContent />} />
         </Route>
       </Route>
     </Routes>

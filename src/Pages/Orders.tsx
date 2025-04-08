@@ -38,7 +38,7 @@ interface Order {
 
 const getStatusIcon = (status: string) => {
   switch (status) {
-    case "delivered":
+    case "completed":
       return <CheckCircle className="h-5 w-5 text-green-500" />
     case "processing":
       return <TruckIcon className="h-5 w-5 text-blue-500" />
@@ -51,8 +51,8 @@ const getStatusIcon = (status: string) => {
 
 const getStatusBadge = (status: string) => {
   switch (status) {
-    case "delivered":
-      return <Badge className="bg-green-500">Delivered</Badge>
+    case "completed":
+      return <Badge className="bg-green-500">Completed</Badge>
     case "processing":
       return <Badge className="bg-blue-500">Processing</Badge>
     case "pending":
@@ -154,7 +154,7 @@ export default function OrdersPage() {
                     <TableCell>GH₵{order.final_amount.toFixed(2)}</TableCell>
                     <TableCell>
                       <Badge variant={
-                        order.status === 'delivered' ? 'default' : 
+                        order.status === 'completed' ? 'default' : 
                         order.status === 'processing' ? 'secondary' : 
                         'destructive'
                       }>

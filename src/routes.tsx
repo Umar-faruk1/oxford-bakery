@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import { AdminLayout } from "./Admin/layouts/AdminLayout";
 import { DashboardContent } from "./Admin/pagess/Dashboard";
 import { OrdersContent } from "./Admin/pagess/Orders";
-import { MenuContent } from "./Admin/pagess/Menu";
+import { MenuItemsContent } from "./Admin/pagess/Menus";
 import { UsersContent } from "./Admin/pagess/User";
 
 export const adminRoutes = [
@@ -17,12 +17,19 @@ export const adminRoutes = [
         path: "/admin/orders",
         element: <OrdersContent />
       },
+      {
+        path: "/admin/menu",
+        element: <MenuItemsContent />
+      },
+      {
+        path: "/admin/users",
+        element: <UsersContent />
+      }
     ]
   }
 ];
 
-// Then in your routes array, use Orders instead of OrdersContent
-{
-  path: "/admin/orders",
-  element: <OrdersContent />
-} 
+export const router = createBrowserRouter([
+  ...adminRoutes,
+  // Add other routes here
+]); 
